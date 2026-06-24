@@ -1,5 +1,5 @@
 import supabase from "../config/supabase.js";
-
+import { comparePasswords } from "../utils/passwordUtils.js";
 const staffLogin = async (req, res) => {
     try {
         const { hospital_name, staff_id, password } = req.body;
@@ -9,6 +9,12 @@ const staffLogin = async (req, res) => {
                 error: "Staff not found"
             });
         };
+
+        const isPasswordValid = await comparePasswords(password, data.password_hash);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid password' });
+        }
+
         res.json({
             status: "Login successful",
             staff: data
