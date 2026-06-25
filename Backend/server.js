@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import staffRoute from "./routes/staffLogin.js";
+import staffRoute from "./routes/staff.js";
 dotenv.config();
 const app = express();
 
