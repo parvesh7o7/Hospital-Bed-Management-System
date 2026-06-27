@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import staffRoute from "./routes/staff.js";
+import adminRoute from "./routes/admin.js";
 dotenv.config();
 const app = express();
 
@@ -26,7 +27,7 @@ app.get('/patient', (req, res) => {
     }
 })*/
 app.use('/api/staff', staffRoute);
-//staff_login_route
+app.use('/api/admin', adminRoute);
 
 
 const PORT = process.env.PORT || 3000;
