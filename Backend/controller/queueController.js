@@ -11,8 +11,7 @@ const calculateQueuePriority = (patient) => {
 
     const deterioration_rate = patient.deterioration_rate || 0;
 
-    const priority_score = (severity_score[patient.severity] * 100) + wait_time_minutes + (deterioration_rate * 50);
-    console.log("Priorityscore : ", priority_score);
+    const priority_score = (severity_score[patient.severity_classification] * 100) + wait_time_minutes + (deterioration_rate * 50);
     return priority_score;
 };
 
@@ -23,16 +22,14 @@ const getWaitingQueue = async (hospital_id) => {
         if (error) throw error;
 
         const queue_with_priority = waiting_patient.map((patient) => {
-            const score = calculateQueuePriority(patient);
-            console.log('Patient', patient.id, 'score:', score);
+
             return {
                 ...patient,
-                priority_score: score
+                priority_score: calculateQueuePriority(patient),
             }
         })
 
         const sorted_queue = queue_with_priority.sort((a, b) => b.priority_score - a.priority_score);
-
         return sorted_queue;
     } catch (error) {
         return {
@@ -45,7 +42,7 @@ const getWaitingQueue = async (hospital_id) => {
 
 const assignPatientToQueue = async (patient_id, hospital_id) => {
     try {
-        const { error } = await supabase.from('patients').update({ is_in_queue: true }).eq('id', patient_id);
+        const { error } = await supabase.from('patients').update({ is_in_queue: true }).eq('id', patient_id).eq('hospital_id', hospital_id);
 
         if (error) throw error;
 

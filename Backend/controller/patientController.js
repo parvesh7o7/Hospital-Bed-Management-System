@@ -28,7 +28,7 @@ const admitPatient = async (req, res) => {
             needs_respiratory_support,
         )
 
-        const { data: patient, error } = await supabase.from('patients').insert({
+        let { data: patient, error } = await supabase.from('patients').insert({
             hospital_id,
             diagnosis,
             o2_sat,
@@ -50,17 +50,24 @@ const admitPatient = async (req, res) => {
         const { data: bed, error: bed_error } = await supabase.from('beds').select('*').eq('hospital_id', hospital_id).eq('bed_type', bed_type).eq('is_occupied', false).limit(1).single();
         let bedAssignment = null;
         if (!bed_error && bed) {
-            const { data: updatedBed, error: update_error } = await supabase.from('beds').update({ 'is_occupied': true, "current_patient_id": patient.id }).eq('id', bed.id).select().single();
+            const { data: updatedBed, error: update_error } = await supabase.from('beds').update({ is_occupied: true, current_patient_id: patient.id }).eq('id', bed.id).select().single();
 
             if (!update_error) {
                 bedAssignment = updatedBed;
+                const { data: updated_patient } = await supabase
+                    .from('patients')
+                    .update({ bed_id: bed.id })
+                    .eq('id', patient.id).eq('hospital_id', hospital_id).select().single();
+                if (updated_patient) {
+                    patient = updated_patient;
+                }
             }
         } else {
-            console.log('No bed available, adding to queue');
-            console.log('Patient ID:', patient.id);
-            console.log('Hospital ID:', hospital_id);
-            const queue_result = await assignPatientToQueue(patient.id, hospital_id);
-            console.log(queue_result);
+            await assignPatientToQueue(patient.id, hospital_id);
+            const { data: queued_patient } = await supabase.from('patients').select('*').eq('id', patient.id).single();
+            if (queued_patient) {
+                patient = queued_patient;
+            }
         }
 
         res.json({
