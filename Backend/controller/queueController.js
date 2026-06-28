@@ -30,7 +30,11 @@ const getWaitingQueue = async (hospital_id) => {
         })
 
         const sorted_queue = queue_with_priority.sort((a, b) => b.priority_score - a.priority_score);
-        return sorted_queue;
+        const sorted_queue_with_position = sorted_queue.map((patient, index) => ({
+            ...patient,
+            position: index + 1
+        }))
+        return sorted_queue_with_position;
     } catch (error) {
         return {
             status: 'error',
