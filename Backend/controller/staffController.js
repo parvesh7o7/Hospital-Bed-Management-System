@@ -1,4 +1,5 @@
 import supabase from "../config/supabase.js";
+import jwt from "jsonwebtoken";
 import { comparePasswords } from "../utils/passwordUtils.js";
 const staffLogin = async (req, res) => {
     try {
@@ -15,8 +16,15 @@ const staffLogin = async (req, res) => {
             return res.status(401).json({ error: 'Invalid password' });
         }
 
+        const token = jwt.sign(
+            { staff_id: staff_id, hospital_name: hospital_name, role: "staff" },
+            process.env.JWT_SECRET,
+            { expiresIn: '8h' }
+        );
+
         res.json({
             status: "Login successful",
+            token,
             staff: data
         })
     } catch (error) {

@@ -2,11 +2,12 @@ import staffLogin from "../controller/staffController.js";
 import admitPatient from "../controller/patientController.js";
 import { getWaitingQueue } from "../controller/queueController.js";
 import express from "express";
+import verify_token from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 router.post('/login', staffLogin);
-router.post('/admit-patient', admitPatient);
-router.get('/queue/:hospital_id', async (req, res) => {
+router.post('/admit-patient', verify_token, admitPatient);
+router.get('/queue/:hospital_id', verify_token, async (req, res) => {
     try {
         const result = await getWaitingQueue(req.params.hospital_id);
 
