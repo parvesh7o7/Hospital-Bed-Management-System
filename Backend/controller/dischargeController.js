@@ -1,6 +1,6 @@
 import supabase from "../config/supabase.js";
 import { getWaitingQueue } from "./queueController.js";
-async function discharge_patient(hospital_id, patient_id, discharge_reason) {
+async function discharge_patient(hospital_id, patient_id, discharge_reason, staff_id) {
     try {
         console.log("Discharging Patient: ", patient_id);
         const { data: patient, error: patient_error } = await supabase.from('patients').select('bed_id').eq('hospital_id', hospital_id).eq('id', patient_id).single();
@@ -38,6 +38,7 @@ async function discharge_patient(hospital_id, patient_id, discharge_reason) {
             hospital_id,
             action: 'DISCHARGE',
             patient_id,
+            user_id: staff_id,
             details: discharge_reason
         })
         const queue = await getWaitingQueue(hospital_id);
@@ -72,6 +73,7 @@ async function discharge_patient(hospital_id, patient_id, discharge_reason) {
                     hospital_id,
                     action: 'BED_ASSIGNMENT',
                     patient_id: next_patient.id,
+                    user_id: staff_id,
                     details: `Assigned to bed ${selected_bed.bed_number}`
                 })
             }
@@ -79,6 +81,7 @@ async function discharge_patient(hospital_id, patient_id, discharge_reason) {
         return {
             status: 'success',
             message: 'Patient Discharged',
+            staff_id: staff_id,
             discharge_id: patient_id,
             assigned_bed_id: bed_id,
             next_patient: next_patient ? next_patient.id : null,
